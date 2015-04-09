@@ -3,4 +3,10 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+    <string name="sensitivity">noise level sensitivity</string>
+    <string name="low">low</string>
+    <string name="med">medium</string>
+    <string name="high">high</string>
+    <string name="test">test</string>
 </resources>
