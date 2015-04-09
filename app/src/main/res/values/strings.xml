@@ -8,5 +8,7 @@
     <string name="low">low</string>
     <string name="med">medium</string>
     <string name="high">high</string>
+    <string name="save">save</string>
     <string name="test">test</string>
+    <string name="settings_saved">Settings saved</string>
 </resources>

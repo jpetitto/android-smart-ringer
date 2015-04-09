@@ -32,6 +32,7 @@
         <RadioGroup
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
             android:orientation="horizontal"
             android:checkedButton="@+id/med_button">
 
@@ -61,13 +62,25 @@
 
         </RadioGroup>
 
-        <Button
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/test"
-            android:onClick="onNoiseTestClicked" />
+            android:layout_height="wrap_content">
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp"
+                android:text="@string/save"
+                android:onClick="onSaveClicked" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/test"
+                android:onClick="onTestClicked" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
