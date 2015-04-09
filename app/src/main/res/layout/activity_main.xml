@@ -33,8 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
-            android:orientation="horizontal"
-            android:checkedButton="@+id/med_button">
+            android:orientation="horizontal">
 
             <RadioButton
                 android:id="@+id/low_button"
