@@ -24,7 +24,7 @@ public class NoiseMeter {
         }
     }
 
-    public double getMaxAmplitude() {
+    public int getMaxAmplitude() {
         short[] buffer = new short[MIN_BUFFER_SIZE];
 
         if (mAudioRecord != null) {
