@@ -9,6 +9,7 @@
     <string name="med">medium</string>
     <string name="high">high</string>
     <string name="save">save</string>
-    <string name="test">test</string>
+    <string name="start_test">start test</string>
+    <string name="stop_test">stop test</string>
     <string name="settings_saved">Settings saved</string>
 </resources>

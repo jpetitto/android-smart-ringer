@@ -1,14 +1,16 @@
 package com.ibm.mil.smartringer;
 
 import android.media.AudioManager;
-import android.media.MediaPlayer;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
@@ -26,6 +28,8 @@ public class MainActivity extends ActionBarActivity {
     private Handler mHandler;
     private Runnable mRunnable;
     private SensitivityLevel mSensitivityLevel;
+    private Button mTestRingerButton;
+    private Ringtone mRingtone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,7 @@ public class MainActivity extends ActionBarActivity {
         setSupportActionBar(toolbar);
 
         mNoiseMeter = new NoiseMeter();
+
         mHandler = new Handler();
         mRunnable = new Runnable() {
             @Override
@@ -44,6 +49,33 @@ public class MainActivity extends ActionBarActivity {
                 mHandler.postDelayed(this, POLLING_RATE);
             }
         };
+
+        Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+        mRingtone = RingtoneManager.getRingtone(this, ringtoneUri);
+
+        mTestRingerButton = (Button) findViewById(R.id.test_ringer_button);
+        mTestRingerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mRingtone.isPlaying()) {
+                    mTestRingerButton.setText(R.string.start_test);
+                    mRingtone.stop();
+                } else {
+                    mTestRingerButton.setText(getString(R.string.stop_test));
+
+                    AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+                    int originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+                    int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+
+                    Log.i(TAG, "Current Volume: " + originalVolume);
+                    Log.i(TAG, "Max Volume: " + maxVolume);
+
+                    audioManager.setStreamVolume(AudioManager.STREAM_RING, maxVolume, 0);
+
+                    mRingtone.play();
+                }
+            }
+        });
 
         setInitialRadioClicked();
     }
@@ -54,6 +86,15 @@ public class MainActivity extends ActionBarActivity {
 
         mNoiseMeter.start();
         mHandler.postDelayed(mRunnable, POLLING_RATE);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (mRingtone.isPlaying()) {
+            mRingtone.stop();
+        }
     }
 
     @Override
@@ -87,23 +128,6 @@ public class MainActivity extends ActionBarActivity {
         Toast.makeText(this, R.string.settings_saved, Toast.LENGTH_SHORT).show();
     }
 
-    public void onTestClicked(View view) {
-        Log.i(TAG, "Test noise sensitivity...");
-
-        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        int originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-        int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
-
-        Log.i(TAG, "Current Volume: " + originalVolume);
-        Log.i(TAG, "Max Volume: " + maxVolume);
-
-        audioManager.setStreamVolume(AudioManager.STREAM_RING, maxVolume,
-                AudioManager.FLAG_PLAY_SOUND);
-
-        MediaPlayer mediaPlayer = MediaPlayer.create(this, Settings.System.DEFAULT_RINGTONE_URI);
-        mediaPlayer.start();
-    }
-
     private void setInitialRadioClicked() {
         int code = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .getInt(SENS_KEY, SensitivityLevel.MEDIUM.getCode());
@@ -127,6 +151,8 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private enum SensitivityLevel {
+        // do not change code value passed to the enum's constructor as this is used for making
+        // an enum value persistable within SharedPreferences
         LOW(1),
         MEDIUM(2),
         HIGH(3);
