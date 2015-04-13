@@ -30,6 +30,9 @@ public class MainActivity extends ActionBarActivity {
     private SensitivityLevel mSensitivityLevel;
     private Button mTestRingerButton;
     private Ringtone mRingtone;
+    private AudioManager mAudioManager;
+    private int mOriginalVolume;
+    private int mMaxVolume;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,26 +56,17 @@ public class MainActivity extends ActionBarActivity {
         Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         mRingtone = RingtoneManager.getRingtone(this, ringtoneUri);
 
+        mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        mMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+
         mTestRingerButton = (Button) findViewById(R.id.test_ringer_button);
         mTestRingerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mRingtone.isPlaying()) {
-                    mTestRingerButton.setText(R.string.start_test);
-                    mRingtone.stop();
+                    stopRingtone();
                 } else {
-                    mTestRingerButton.setText(getString(R.string.stop_test));
-
-                    AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-                    int originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-                    int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
-
-                    Log.i(TAG, "Current Volume: " + originalVolume);
-                    Log.i(TAG, "Max Volume: " + maxVolume);
-
-                    audioManager.setStreamVolume(AudioManager.STREAM_RING, maxVolume, 0);
-
-                    mRingtone.play();
+                    startRingtone();
                 }
             }
         });
@@ -89,18 +83,10 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
-
-        if (mRingtone.isPlaying()) {
-            mRingtone.stop();
-        }
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
 
+        stopRingtone();
         mNoiseMeter.stop();
         mHandler.removeCallbacks(mRunnable);
     }
@@ -148,6 +134,23 @@ public class MainActivity extends ActionBarActivity {
 
         RadioButton radioButton = (RadioButton) findViewById(radioButtonId);
         radioButton.setChecked(true);
+    }
+
+    private void startRingtone() {
+        if (!mRingtone.isPlaying()) {
+            mTestRingerButton.setText(R.string.stop_test);
+            mOriginalVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_RING);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_RING, mMaxVolume, 0);
+            mRingtone.play();
+        }
+    }
+
+    private void stopRingtone() {
+        if (mRingtone.isPlaying()) {
+            mTestRingerButton.setText(R.string.start_test);
+            mRingtone.stop();
+            mAudioManager.setStreamVolume(AudioManager.STREAM_RING, mOriginalVolume, 0);
+        }
     }
 
     private enum SensitivityLevel {
