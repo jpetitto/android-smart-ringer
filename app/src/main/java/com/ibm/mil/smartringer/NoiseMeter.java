@@ -5,6 +5,8 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 
 public class NoiseMeter {
+    public static final int MAX_AMP_LEVEL = 32000;
+
     private static final int SAMPLE_RATE = 8000;
     private static final int MIN_BUFFER_SIZE = AudioRecord.getMinBufferSize(SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);

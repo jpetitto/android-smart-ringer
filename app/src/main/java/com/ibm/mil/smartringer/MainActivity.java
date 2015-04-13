@@ -32,7 +32,7 @@ public class MainActivity extends ActionBarActivity {
     private Ringtone mRingtone;
     private AudioManager mAudioManager;
     private int mOriginalVolume;
-    private int mMaxVolume;
+    private int mAmpInterval;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +48,12 @@ public class MainActivity extends ActionBarActivity {
         mRunnable = new Runnable() {
             @Override
             public void run() {
-                Log.i(TAG, "Max Amplitude: " + mNoiseMeter.getMaxAmplitude());
+                Log.i(TAG, "Amp interval: " + mAmpInterval);
+                int maxAmplitude = mNoiseMeter.getMaxAmplitude();
+                Log.i(TAG, "Max amplitude: " + maxAmplitude);
+                int adjustedVolumeLevel = Math.max(1, maxAmplitude / mAmpInterval);
+                Log.i(TAG, "Newly adjusted volume level: " + adjustedVolumeLevel);
+                mAudioManager.setStreamVolume(AudioManager.STREAM_RING, adjustedVolumeLevel, 0);
                 mHandler.postDelayed(this, POLLING_RATE);
             }
         };
@@ -57,15 +62,18 @@ public class MainActivity extends ActionBarActivity {
         mRingtone = RingtoneManager.getRingtone(this, ringtoneUri);
 
         mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        mMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+        int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+        mAmpInterval = NoiseMeter.MAX_AMP_LEVEL / maxVolume;
 
         mTestRingerButton = (Button) findViewById(R.id.test_ringer_button);
         mTestRingerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mRingtone.isPlaying()) {
+                    Log.i(TAG, "Stopping ringtone!");
                     stopRingtone();
                 } else {
+                    Log.i(TAG, "Starting ringtone!");
                     startRingtone();
                 }
             }
@@ -75,20 +83,9 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-
-        mNoiseMeter.start();
-        mHandler.postDelayed(mRunnable, POLLING_RATE);
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
-
         stopRingtone();
-        mNoiseMeter.stop();
-        mHandler.removeCallbacks(mRunnable);
     }
 
     public void onSensitivityClicked(View view) {
@@ -140,8 +137,10 @@ public class MainActivity extends ActionBarActivity {
         if (!mRingtone.isPlaying()) {
             mTestRingerButton.setText(R.string.stop_test);
             mOriginalVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_RING);
-            mAudioManager.setStreamVolume(AudioManager.STREAM_RING, mMaxVolume, 0);
+            Log.i(TAG, "Original stream volume: " + mOriginalVolume);
             mRingtone.play();
+            mNoiseMeter.start();
+            mHandler.postDelayed(mRunnable, POLLING_RATE);
         }
     }
 
@@ -149,6 +148,8 @@ public class MainActivity extends ActionBarActivity {
         if (mRingtone.isPlaying()) {
             mTestRingerButton.setText(R.string.start_test);
             mRingtone.stop();
+            mNoiseMeter.stop();
+            mHandler.removeCallbacks(mRunnable);
             mAudioManager.setStreamVolume(AudioManager.STREAM_RING, mOriginalVolume, 0);
         }
     }
