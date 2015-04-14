@@ -8,28 +8,24 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
-    private static final String TAG = MainActivity.class.getName();
     private static final String PREFS_NAME = "SmartRingerPrefs";
     private static final String SENS_KEY = "sensitivityLevel";
 
     private static final int POLLING_RATE = 1000;
 
-    private NoiseMeter mNoiseMeter;
     private Handler mHandler;
     private Runnable mRunnable;
-    private SensitivityLevel mSensitivityLevel;
     private Button mTestRingerButton;
     private Ringtone mRingtone;
-    private AudioManager mAudioManager;
-    private int mOriginalVolume;
-    private int mAmpInterval;
+    private NoiseMeter mNoiseMeter;
+    private RingerVolumeAdjuster mRingerVolumeAdjuster;
+    private SensitivityLevel mSensitivityLevel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,18 +35,15 @@ public class MainActivity extends ActionBarActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         mNoiseMeter = new NoiseMeter();
+        mRingerVolumeAdjuster = new RingerVolumeAdjuster(mNoiseMeter, audioManager);
 
         mHandler = new Handler();
         mRunnable = new Runnable() {
             @Override
             public void run() {
-                Log.i(TAG, "Amp interval: " + mAmpInterval);
-                int maxAmplitude = mNoiseMeter.getMaxAmplitude();
-                Log.i(TAG, "Max amplitude: " + maxAmplitude);
-                int adjustedVolumeLevel = Math.max(1, maxAmplitude / mAmpInterval);
-                Log.i(TAG, "Newly adjusted volume level: " + adjustedVolumeLevel);
-                mAudioManager.setStreamVolume(AudioManager.STREAM_RING, adjustedVolumeLevel, 0);
+                mRingerVolumeAdjuster.adjustVolume(mSensitivityLevel);
                 mHandler.postDelayed(this, POLLING_RATE);
             }
         };
@@ -58,19 +51,13 @@ public class MainActivity extends ActionBarActivity {
         Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         mRingtone = RingtoneManager.getRingtone(this, ringtoneUri);
 
-        mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
-        mAmpInterval = NoiseMeter.MAX_AMP_LEVEL / maxVolume;
-
         mTestRingerButton = (Button) findViewById(R.id.test_ringer_button);
         mTestRingerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mRingtone.isPlaying()) {
-                    Log.i(TAG, "Stopping ringtone!");
                     stopRingtone();
                 } else {
-                    Log.i(TAG, "Starting ringtone!");
                     startRingtone();
                 }
             }
@@ -108,6 +95,25 @@ public class MainActivity extends ActionBarActivity {
         Toast.makeText(this, R.string.settings_saved, Toast.LENGTH_SHORT).show();
     }
 
+    private void startRingtone() {
+        if (!mRingtone.isPlaying()) {
+            mTestRingerButton.setText(R.string.stop_test);
+            mRingtone.play();
+            mNoiseMeter.start();
+            mHandler.postDelayed(mRunnable, POLLING_RATE);
+        }
+    }
+
+    private void stopRingtone() {
+        if (mRingtone.isPlaying()) {
+            mTestRingerButton.setText(R.string.start_test);
+            mRingtone.stop();
+            mNoiseMeter.stop();
+            mHandler.removeCallbacks(mRunnable);
+            mRingerVolumeAdjuster.restoreVolume();
+        }
+    }
+
     private void setInitialRadioClicked() {
         int code = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .getInt(SENS_KEY, SensitivityLevel.MEDIUM.getCode());
@@ -128,27 +134,6 @@ public class MainActivity extends ActionBarActivity {
 
         RadioButton radioButton = (RadioButton) findViewById(radioButtonId);
         radioButton.setChecked(true);
-    }
-
-    private void startRingtone() {
-        if (!mRingtone.isPlaying()) {
-            mTestRingerButton.setText(R.string.stop_test);
-            mOriginalVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_RING);
-            Log.i(TAG, "Original stream volume: " + mOriginalVolume);
-            mRingtone.play();
-            mNoiseMeter.start();
-            mHandler.postDelayed(mRunnable, POLLING_RATE);
-        }
-    }
-
-    private void stopRingtone() {
-        if (mRingtone.isPlaying()) {
-            mTestRingerButton.setText(R.string.start_test);
-            mRingtone.stop();
-            mNoiseMeter.stop();
-            mHandler.removeCallbacks(mRunnable);
-            mAudioManager.setStreamVolume(AudioManager.STREAM_RING, mOriginalVolume, 0);
-        }
     }
 
 }
