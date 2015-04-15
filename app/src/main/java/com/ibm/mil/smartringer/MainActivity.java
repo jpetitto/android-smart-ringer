@@ -17,7 +17,6 @@ public class MainActivity extends ActionBarActivity {
     private static final String PREFS_NAME = "SmartRingerPrefs";
     private static final String SENS_KEY = "sensitivityLevel";
 
-    private static final int POLLING_RATE = 1000;
 
     private Handler mHandler;
     private Runnable mRunnable;
@@ -43,9 +42,9 @@ public class MainActivity extends ActionBarActivity {
         mRunnable = new Runnable() {
             @Override
             public void run() {
-                int amplitude = mNoiseMeter.getMaxAmplitude();
-                mVolumeAdjuster.adjustVolume(amplitude, mSensitivityLevel);
-                mHandler.postDelayed(this, POLLING_RATE);
+                int noiseAmplitude = mNoiseMeter.getMaxAmplitude();
+                mVolumeAdjuster.adjustVolume(noiseAmplitude, mSensitivityLevel);
+                mHandler.postDelayed(mRunnable, POLLING_RATE);
             }
         };
 
@@ -110,7 +109,7 @@ public class MainActivity extends ActionBarActivity {
             mTestRingerButton.setText(R.string.start_test);
             mRingtone.stop();
             mNoiseMeter.stop();
-            mHandler.removeCallbacks(null); // removes all pending callbacks
+            mHandler.removeCallbacks(mRunnable);
             mVolumeAdjuster.restoreVolume();
         }
     }
