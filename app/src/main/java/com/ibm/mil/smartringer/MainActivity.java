@@ -24,7 +24,7 @@ public class MainActivity extends ActionBarActivity {
     private Button mTestRingerButton;
     private Ringtone mRingtone;
     private NoiseMeter mNoiseMeter;
-    private RingerVolumeAdjuster mRingerVolumeAdjuster;
+    private VolumeAdjuster mVolumeAdjuster;
     private SensitivityLevel mSensitivityLevel;
 
     @Override
@@ -37,14 +37,14 @@ public class MainActivity extends ActionBarActivity {
 
         mNoiseMeter = new NoiseMeter();
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        mRingerVolumeAdjuster = new RingerVolumeAdjuster(audioManager);
+        mVolumeAdjuster = new VolumeAdjuster(audioManager, AudioManager.STREAM_RING);
 
         mHandler = new Handler();
         mRunnable = new Runnable() {
             @Override
             public void run() {
                 int amplitude = mNoiseMeter.getMaxAmplitude();
-                mRingerVolumeAdjuster.adjustVolume(amplitude, mSensitivityLevel);
+                mVolumeAdjuster.adjustVolume(amplitude, mSensitivityLevel);
                 mHandler.postDelayed(this, POLLING_RATE);
             }
         };
@@ -111,7 +111,7 @@ public class MainActivity extends ActionBarActivity {
             mRingtone.stop();
             mNoiseMeter.stop();
             mHandler.removeCallbacks(null); // removes all pending callbacks
-            mRingerVolumeAdjuster.restoreVolume();
+            mVolumeAdjuster.restoreVolume();
         }
     }
 

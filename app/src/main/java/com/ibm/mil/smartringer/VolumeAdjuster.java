@@ -3,24 +3,26 @@ package com.ibm.mil.smartringer;
 import android.media.AudioManager;
 import android.util.Log;
 
-public final class RingerVolumeAdjuster {
-    private static final String TAG = RingerVolumeAdjuster.class.getName();
+public final class VolumeAdjuster {
+    private static final String TAG = VolumeAdjuster.class.getName();
     private static final int VOLUME_FLAGS = 0;
 
     private AudioManager mAudioManager;
+    private final int mStreamType;
     private final int mOriginalVolume;
     private final int mMaxVolume;
     private final int mAmpInterval;
 
-    public RingerVolumeAdjuster(AudioManager audioManager) {
+    public VolumeAdjuster(AudioManager audioManager, int streamType) {
         mAudioManager = audioManager;
-        mOriginalVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_RING);
-        mMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+        mStreamType = streamType;
+        mOriginalVolume = mAudioManager.getStreamVolume(mStreamType);
+        mMaxVolume = mAudioManager.getStreamMaxVolume(mStreamType);
         mAmpInterval = NoiseMeter.METER_LIMIT / mMaxVolume;
     }
 
-    public void adjustVolume(int amplitude, SensitivityLevel sensitivityLevel) {
-        int adjustedVolumeLevel = Math.max(1, amplitude / mAmpInterval);
+    public void adjustVolume(int noiseAmplitude, SensitivityLevel sensitivityLevel) {
+        int adjustedVolumeLevel = Math.max(1, noiseAmplitude / mAmpInterval);
 
         if (sensitivityLevel == SensitivityLevel.LOW) {
             adjustedVolumeLevel = Math.max(1, adjustedVolumeLevel - 1);
@@ -28,14 +30,14 @@ public final class RingerVolumeAdjuster {
             adjustedVolumeLevel = Math.min(mMaxVolume, adjustedVolumeLevel + 1);
         }
 
-        mAudioManager.setStreamVolume(AudioManager.STREAM_RING, adjustedVolumeLevel, VOLUME_FLAGS);
+        mAudioManager.setStreamVolume(mStreamType, adjustedVolumeLevel, VOLUME_FLAGS);
 
-        Log.d(TAG, "amplitude: " + amplitude);
+        Log.d(TAG, "noise amplitude: " + noiseAmplitude);
         Log.d(TAG, "volume level: " + adjustedVolumeLevel);
     }
 
     public void restoreVolume() {
-        mAudioManager.setStreamVolume(AudioManager.STREAM_RING, mOriginalVolume, VOLUME_FLAGS);
+        mAudioManager.setStreamVolume(mStreamType, mOriginalVolume, VOLUME_FLAGS);
     }
 
 }
