@@ -35,15 +35,16 @@ public class MainActivity extends ActionBarActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         mNoiseMeter = new NoiseMeter();
-        mRingerVolumeAdjuster = new RingerVolumeAdjuster(mNoiseMeter, audioManager);
+        AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        mRingerVolumeAdjuster = new RingerVolumeAdjuster(audioManager);
 
         mHandler = new Handler();
         mRunnable = new Runnable() {
             @Override
             public void run() {
-                mRingerVolumeAdjuster.adjustVolume(mSensitivityLevel);
+                int amplitude = mNoiseMeter.getMaxAmplitude();
+                mRingerVolumeAdjuster.adjustVolume(amplitude, mSensitivityLevel);
                 mHandler.postDelayed(this, POLLING_RATE);
             }
         };
@@ -109,7 +110,7 @@ public class MainActivity extends ActionBarActivity {
             mTestRingerButton.setText(R.string.start_test);
             mRingtone.stop();
             mNoiseMeter.stop();
-            mHandler.removeCallbacks(mRunnable);
+            mHandler.removeCallbacks(null); // removes all pending callbacks
             mRingerVolumeAdjuster.restoreVolume();
         }
     }
