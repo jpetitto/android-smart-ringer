@@ -40,4 +40,10 @@ public final class VolumeAdjuster {
         mAudioManager.setStreamVolume(mStreamType, mOriginalVolume, VOLUME_FLAGS);
     }
 
+    public enum SensitivityLevel {
+        LOW,
+        MEDIUM,
+        HIGH
+    }
+
 }

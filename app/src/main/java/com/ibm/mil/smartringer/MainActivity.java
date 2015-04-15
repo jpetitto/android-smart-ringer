@@ -17,6 +17,7 @@ public class MainActivity extends ActionBarActivity {
     private static final String PREFS_NAME = "SmartRingerPrefs";
     private static final String SENS_KEY = "sensitivityLevel";
 
+    private static final int POLLING_RATE = 500;
 
     private Handler mHandler;
     private Runnable mRunnable;
@@ -24,7 +25,7 @@ public class MainActivity extends ActionBarActivity {
     private Ringtone mRingtone;
     private NoiseMeter mNoiseMeter;
     private VolumeAdjuster mVolumeAdjuster;
-    private SensitivityLevel mSensitivityLevel;
+    private VolumeAdjuster.SensitivityLevel mSensitivityLevel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,13 +76,13 @@ public class MainActivity extends ActionBarActivity {
     public void onSensitivityClicked(View view) {
         switch (view.getId()) {
             case R.id.low_button:
-                mSensitivityLevel = SensitivityLevel.LOW;
+                mSensitivityLevel = VolumeAdjuster.SensitivityLevel.LOW;
                 break;
             case R.id.med_button:
-                mSensitivityLevel = SensitivityLevel.MEDIUM;
+                mSensitivityLevel = VolumeAdjuster.SensitivityLevel.MEDIUM;
                 break;
             case R.id.high_button:
-                mSensitivityLevel = SensitivityLevel.HIGH;
+                mSensitivityLevel = VolumeAdjuster.SensitivityLevel.HIGH;
                 break;
         }
     }
@@ -89,7 +90,7 @@ public class MainActivity extends ActionBarActivity {
     public void onSaveClicked(View view) {
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .edit()
-                .putInt(SENS_KEY, mSensitivityLevel.getCode())
+                .putString(SENS_KEY, mSensitivityLevel.name())
                 .commit();
 
         Toast.makeText(this, R.string.settings_saved, Toast.LENGTH_SHORT).show();
@@ -115,9 +116,9 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void setInitialRadioClicked() {
-        int code = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .getInt(SENS_KEY, SensitivityLevel.MEDIUM.getCode());
-        mSensitivityLevel = SensitivityLevel.lookupByCode(code);
+        String enumValueName = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .getString(SENS_KEY, VolumeAdjuster.SensitivityLevel.MEDIUM.name());
+        mSensitivityLevel = Enum.valueOf(VolumeAdjuster.SensitivityLevel.class, enumValueName);
 
         int radioButtonId;
         switch (mSensitivityLevel) {
