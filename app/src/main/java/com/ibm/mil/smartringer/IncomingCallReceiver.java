@@ -14,7 +14,7 @@ public class IncomingCallReceiver extends BroadcastReceiver {
         String callState = intent.getExtras().getString(TelephonyManager.EXTRA_STATE);
         if (callState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
             Log.i(TAG, "Incoming phone call detected");
-            // start service to adjust ringer volume for incoming call
+            context.startService(new Intent(context, RingerAdjusterService.class));
         }
     }
 
