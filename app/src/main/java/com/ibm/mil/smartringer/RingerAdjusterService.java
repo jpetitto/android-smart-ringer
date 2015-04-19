@@ -7,8 +7,6 @@ import android.util.Log;
 
 public class RingerAdjusterService extends IntentService {
     private static final String TAG = RingerAdjusterService.class.getName();
-    private static final String PREFS_NAME = "SmartRingerPrefs";
-    private static final String SENS_KEY = "sensitivityLevel";
 
     public RingerAdjusterService() {
         super(TAG);
