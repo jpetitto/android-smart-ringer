@@ -1,5 +1,6 @@
 package com.ibm.mil.smartringer;
 
+import android.content.Context;
 import android.media.AudioManager;
 import android.util.Log;
 
@@ -40,10 +41,25 @@ public final class VolumeAdjuster {
         mAudioManager.setStreamVolume(mStreamType, mOriginalVolume, VOLUME_FLAGS);
     }
 
+    public void mute() {
+        mAudioManager.setStreamVolume(mStreamType, 0, VOLUME_FLAGS);
+    }
+
     public enum SensitivityLevel {
         LOW,
         MEDIUM,
         HIGH
+    }
+
+    public static final String SENSITIVITY_PREFS_NAME = "SensitivityPrefs";
+    public static final String SENSITIVITY_PREFS_KEY = "sensitivityLevel";
+
+    public static SensitivityLevel getUsersSensitivityLevel(Context context) {
+        String enumValueName = context
+                .getSharedPreferences(SENSITIVITY_PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(SENSITIVITY_PREFS_KEY, VolumeAdjuster.SensitivityLevel.MEDIUM.name());
+
+        return Enum.valueOf(VolumeAdjuster.SensitivityLevel.class, enumValueName);
     }
 
 }

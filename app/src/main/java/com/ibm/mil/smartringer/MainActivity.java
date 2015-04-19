@@ -14,9 +14,6 @@ import android.widget.RadioButton;
 import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
-    private static final String PREFS_NAME = "SmartRingerPrefs";
-    private static final String SENS_KEY = "sensitivityLevel";
-
     private static final int POLLING_RATE = 500;
 
     private Handler mHandler;
@@ -88,9 +85,9 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void onSaveClicked(View view) {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        getSharedPreferences(VolumeAdjuster.SENSITIVITY_PREFS_NAME, MODE_PRIVATE)
                 .edit()
-                .putString(SENS_KEY, mSensitivityLevel.name())
+                .putString(VolumeAdjuster.SENSITIVITY_PREFS_KEY, mSensitivityLevel.name())
                 .commit();
 
         Toast.makeText(this, R.string.settings_saved, Toast.LENGTH_SHORT).show();
@@ -116,9 +113,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void setInitialRadioClicked() {
-        String enumValueName = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .getString(SENS_KEY, VolumeAdjuster.SensitivityLevel.MEDIUM.name());
-        mSensitivityLevel = Enum.valueOf(VolumeAdjuster.SensitivityLevel.class, enumValueName);
+        mSensitivityLevel = VolumeAdjuster.getUsersSensitivityLevel(this);
 
         int radioButtonId;
         switch (mSensitivityLevel) {
