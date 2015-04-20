@@ -3,18 +3,45 @@ package com.ibm.mil.smartringer;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class IncomingCallReceiver extends BroadcastReceiver {
     private static final String TAG = IncomingCallReceiver.class.getName();
 
+    private static PhoneStateListener phoneStateListener;
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        String callState = intent.getExtras().getString(TelephonyManager.EXTRA_STATE);
-        if (callState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-            Log.i(TAG, "Incoming phone call detected");
-            context.startService(new Intent(context, RingerAdjusterService.class));
+        Log.i(TAG, "Received system event for change in phone state");
+
+        // register phone state listener only once
+        if (phoneStateListener == null) {
+            Log.i(TAG, "Phone state listener is being initialized");
+            phoneStateListener = new IncomingCallPhoneStateListener(context);
+            TelephonyManager telephonyManager = (TelephonyManager)
+                    context.getSystemService(Context.TELEPHONY_SERVICE);
+            telephonyManager.listen(phoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }
+    }
+
+    private static class IncomingCallPhoneStateListener extends PhoneStateListener {
+        private Context mContext;
+        private boolean isInitialRing = true;
+
+        public IncomingCallPhoneStateListener(Context context) {
+            mContext = context;
+        }
+
+        @Override
+        public void onCallStateChanged(int state, String incomingNumber) {
+            if (state == TelephonyManager.CALL_STATE_RINGING && isInitialRing) {
+                mContext.startService(new Intent(mContext, RingerAdjusterService.class));
+
+                // prevents CALL_STATE_RINGING from being triggered multiple times
+                isInitialRing = false;
+            }
         }
     }
 
