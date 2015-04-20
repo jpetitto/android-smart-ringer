@@ -18,7 +18,6 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 
         // register phone state listener only once
         if (phoneStateListener == null) {
-            Log.i(TAG, "Phone state listener is being initialized");
             phoneStateListener = new IncomingCallPhoneStateListener(context);
             TelephonyManager telephonyManager = (TelephonyManager)
                     context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -27,10 +26,10 @@ public class IncomingCallReceiver extends BroadcastReceiver {
     }
 
     private static class IncomingCallPhoneStateListener extends PhoneStateListener {
-        private Context mContext;
-        private boolean isInitialRing = true;
+        Context mContext;
+        boolean isInitialRing = true;
 
-        public IncomingCallPhoneStateListener(Context context) {
+        IncomingCallPhoneStateListener(Context context) {
             mContext = context;
         }
 
