@@ -43,4 +43,30 @@ public final class NoiseMeter {
 
         return max;
     }
+
+    public static class Sampler {
+        private NoiseMeter mNoiseMeter;
+        private int mPollingRate;
+        private Receiver mReceiver;
+
+        public Sampler(NoiseMeter noiseMeter, int pollingRate, Receiver receiver) {
+            mNoiseMeter = noiseMeter;
+            mPollingRate = pollingRate;
+            mReceiver = receiver;
+        }
+
+        public void startSampling() {
+            // sample from noise meter and notify receiver of result
+            mReceiver.receiveSample(1000);
+        }
+
+        public void stopSampling() {
+            // stop sampling from noise meter
+        }
+    }
+
+    public interface Receiver {
+        void receiveSample(int amplitude);
+    }
+
 }
