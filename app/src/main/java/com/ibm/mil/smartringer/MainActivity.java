@@ -46,17 +46,14 @@ public class MainActivity extends ActionBarActivity {
             }
         };
 
-        Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-        mRingtone = RingtoneManager.getRingtone(this, ringtoneUri);
-
         mTestRingerButton = (Button) findViewById(R.id.test_ringer_button);
         mTestRingerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mRingtone.isPlaying()) {
-                    stopRingtone();
-                } else {
+                if (mRingtone == null) {
                     startRingtone();
+                } else {
+                    stopRingtone();
                 }
             }
         });
@@ -94,18 +91,25 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void startRingtone() {
-        if (!mRingtone.isPlaying()) {
+        if (mRingtone == null) {
             mTestRingerButton.setText(R.string.stop_test);
+
+            Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+            mRingtone = RingtoneManager.getRingtone(this, ringtoneUri);
             mRingtone.play();
+
             mNoiseMeter.start();
             mHandler.postDelayed(mRunnable, POLLING_RATE);
         }
     }
 
     private void stopRingtone() {
-        if (mRingtone.isPlaying()) {
+        if (mRingtone != null) {
             mTestRingerButton.setText(R.string.start_test);
+
             mRingtone.stop();
+            mRingtone = null;
+
             mNoiseMeter.stop();
             mHandler.removeCallbacks(mRunnable);
             mVolumeAdjuster.restoreVolume();
