@@ -23,6 +23,7 @@ public final class NoiseMeter {
         if (mAudioRecord != null) {
             mAudioRecord.stop();
             mAudioRecord.release();
+            mAudioRecord = null;
         }
     }
 
