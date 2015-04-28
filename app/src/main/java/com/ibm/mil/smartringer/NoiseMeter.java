@@ -45,7 +45,7 @@ public final class NoiseMeter {
         return max;
     }
 
-    public static class Sampler {
+    public final static class Sampler {
         private NoiseMeter mNoiseMeter;
         private int mPollingRate;
         private Receiver mReceiver;
