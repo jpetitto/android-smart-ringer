@@ -1,9 +1,7 @@
 package com.ibm.mil.smartringer;
 
 import android.media.AudioManager;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -20,7 +18,7 @@ public class MainActivity extends ActionBarActivity {
     private Handler mHandler;
     private Runnable mRunnable;
     private Button mTestRingerButton;
-    private Ringtone mRingtone;
+    private MediaPlayer mMediaPlayer;
     private NoiseMeter mNoiseMeter;
     private VolumeAdjuster mVolumeAdjuster;
     private VolumeAdjuster.SensitivityLevel mSensitivityLevel;
@@ -33,9 +31,11 @@ public class MainActivity extends ActionBarActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mMediaPlayer = MediaPlayer.create(this, R.raw.emerald_park);
+
         mNoiseMeter = new NoiseMeter();
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        mVolumeAdjuster = new VolumeAdjuster(audioManager, AudioManager.STREAM_RING);
+        mVolumeAdjuster = new VolumeAdjuster(audioManager, AudioManager.STREAM_MUSIC);
 
         HandlerThread thread = new HandlerThread("NoiseMeterThread");
         thread.start();
@@ -54,7 +54,7 @@ public class MainActivity extends ActionBarActivity {
         mTestRingerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mRingtone == null) {
+                if (!mMediaPlayer.isPlaying()) {
                     startRingtone();
                 } else {
                     stopRingtone();
@@ -69,6 +69,13 @@ public class MainActivity extends ActionBarActivity {
     protected void onStop() {
         super.onStop();
         stopRingtone();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mMediaPlayer.stop();
+        mNoiseMeter.stop();
     }
 
     public void onSensitivityClicked(View view) {
@@ -95,25 +102,18 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void startRingtone() {
-        if (mRingtone == null) {
+        if (!mMediaPlayer.isPlaying()) {
             mTestRingerButton.setText(R.string.stop_test);
-
-            Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-            mRingtone = RingtoneManager.getRingtone(this, ringtoneUri);
-            mRingtone.play();
-
+            mMediaPlayer.start();
             mNoiseMeter.start();
             mHandler.postDelayed(mRunnable, POLLING_RATE);
         }
     }
 
     private void stopRingtone() {
-        if (mRingtone != null) {
+        if (mMediaPlayer.isPlaying()) {
             mTestRingerButton.setText(R.string.start_test);
-
-            mRingtone.stop();
-            mRingtone = null;
-
+            mMediaPlayer.pause();
             mNoiseMeter.stop();
             mHandler.removeCallbacks(mRunnable);
             mVolumeAdjuster.restoreVolume();
