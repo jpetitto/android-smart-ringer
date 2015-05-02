@@ -6,6 +6,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -36,7 +37,10 @@ public class MainActivity extends ActionBarActivity {
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         mVolumeAdjuster = new VolumeAdjuster(audioManager, AudioManager.STREAM_RING);
 
-        mHandler = new Handler();
+        HandlerThread thread = new HandlerThread("NoiseMeterThread");
+        thread.start();
+        mHandler = new Handler(thread.getLooper());
+
         mRunnable = new Runnable() {
             @Override
             public void run() {
