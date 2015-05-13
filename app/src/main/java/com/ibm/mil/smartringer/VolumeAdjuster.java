@@ -59,7 +59,13 @@ public final class VolumeAdjuster {
                 .getSharedPreferences(SENSITIVITY_PREFS_NAME, Context.MODE_PRIVATE)
                 .getString(SENSITIVITY_PREFS_KEY, VolumeAdjuster.SensitivityLevel.MEDIUM.name());
 
-        return Enum.valueOf(VolumeAdjuster.SensitivityLevel.class, enumValueName);
+        // enumValueName may be null, use MEDIUM as default in this case
+        SensitivityLevel sensitivityLevel = SensitivityLevel.MEDIUM;
+        if (enumValueName != null) {
+            sensitivityLevel = Enum.valueOf(VolumeAdjuster.SensitivityLevel.class, enumValueName);
+        }
+
+        return sensitivityLevel;
     }
 
 }
